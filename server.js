@@ -24,6 +24,13 @@ const server = app.listen(app.get('port'), () => {
 	console.log("I'm listening....");
 });
 
+var game = {
+	id: null,
+	players: {},
+	bases: {},
+	ball: null,
+}
+
 const io = require('socket.io')(server);
 io.on('connection', (socket) => {
 	console.log('connected to ' + socket.id);
@@ -35,6 +42,9 @@ io.on('connection', (socket) => {
 	socket.on('playerJoin', (data) => {
 		console.log(`broadcasting new player ${JSON.stringify(data)}`);
 		socket.broadcast.emit('playerJoin', data);
+		game.players[socket.id] = {
+			id: data.player.id,
+		}
 	});
 	// New player requests old players
 	socket.on('requestPlayers', () => {
@@ -44,5 +54,14 @@ io.on('connection', (socket) => {
 	// Adds an existing player to a new players' game
 	socket.on('sendPlayer', (data) => {
 		io.to(`${data.client}`).emit('playerJoin', data.joiningPlayer);
+	});
+	socket.on('disconnect', () => {
+		console.log(`${socket.id} has disconnected!`);
+		const players = game.players;
+		const player = players[socket.id];
+		if (player) {
+			const playerId = player.id;
+			io.to('game').emit('removePlayer', playerId);
+		}
 	});
 });
