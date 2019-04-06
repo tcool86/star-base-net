@@ -28,7 +28,9 @@ var game = {
 	id: null,
 	players: {},
 	bases: {},
-	ball: null,
+	ball: {
+		owner: null,
+	},
 }
 
 const io = require('socket.io')(server);
@@ -63,5 +65,11 @@ io.on('connection', (socket) => {
 			const playerId = player.id;
 			io.to('game').emit('removePlayer', playerId);
 		}
+	});
+	socket.on('updateGame', () => {
+		io.to('game').emit('gameUpdate', game);
+	});
+	socket.on('ballUpdate', (data) => {
+		game.ball = data;
 	});
 });
