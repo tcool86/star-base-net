@@ -1,3 +1,4 @@
+const _ = require('lodash');
 var app = require('express')();
 
 app.set('port', (process.env.PORT || 3000));
@@ -69,7 +70,11 @@ io.on('connection', (socket) => {
 	socket.on('updateGame', () => {
 		io.to('game').emit('gameUpdate', game);
 	});
-	socket.on('ballUpdate', (data) => {
-		game.ball = data;
+	socket.on('updateGameProperty', (data) => {
+		console.log(data);
+		const props = _.keys(data);
+		_.each(props, (prop) => {
+			game[prop] = data[prop];
+		});
 	});
 });
